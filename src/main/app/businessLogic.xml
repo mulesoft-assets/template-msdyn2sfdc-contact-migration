@@ -2,12 +2,11 @@
 
 <mule xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm"
 	xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper"
-	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:core="http://www.mulesoft.org/schema/mule/core"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
 	xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" xmlns:json="http://www.mulesoft.org/schema/mule/json"
-	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.0"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -16,8 +15,6 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
 http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/mule/dynamicscrm/current/mule-dynamicscrm.xsd">
 	<data-mapper:config name="Contact_To_Contact"
@@ -28,18 +25,34 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 		<batch:input>
 			<dynamicscrm:retrieve-multiple-by-query
 				config-ref="MS_Dynamics_CRM"
-				query="dsql:SELECT accountid_referenceto_account,contactid,emailaddress1,externaluseridentifier,firstname,fullname,lastname,modifiedby_referenceto_systemuser,telephone1 FROM contact"
+				query="&lt;fetch mapping=&quot;logical&quot;&gt;
+&lt;entity name=&quot;contact&quot;&gt;
+&lt;attribute name=&quot;contactid&quot; /&gt;
+&lt;attribute name=&quot;emailaddress1&quot; /&gt;
+&lt;attribute name=&quot;firstname&quot; /&gt;
+&lt;attribute name=&quot;fullname&quot; /&gt;
+&lt;attribute name=&quot;lastname&quot; /&gt;
+&lt;attribute name=&quot;parentcustomerid&quot; /&gt;
+&lt;attribute name=&quot;telephone1&quot; /&gt;
+&lt;link-entity name=&quot;account&quot; from=&quot;accountid&quot; to=&quot;parentcustomerid&quot; alias=&quot;acc&quot; link-type=&quot;inner&quot;&gt;
+       &lt;attribute name=&quot;name&quot;/&gt;
+&lt;/link-entity&gt;
+&lt;/entity&gt;
+&lt;/fetch&gt;"
 				doc:name="Microsoft Dynamics CRM" />
 		</batch:input>
 		<batch:process-records>
-			<batch:step name="Batch_Step">
-				<logger level="INFO" doc:name="Logger" />
+			<batch:step name="getAccountNameFromJoinResultStep">
+				<expression-component doc:name="getAccountName"><![CDATA[// obtain account name from the complex structure returned by join query
+payload.put('accountName',payload.get('acc.name').value);
+// complex structure is not necessary any more
+payload.remove('acc.name');]]></expression-component>
 			</batch:step>
 			<batch:step name="getContactInSalesforceStep">
 				<enricher source="#[payload]" target="#[recordVars['contactInSalesforce']]"
 					doc:name="store result in 'contactInSalesforce'">
 					<sfdc:query-single config-ref="Salesforce"
-						query="SELECT Id,Name FROM Contact WHERE Name = '#[payload[&quot;Name&quot;]]'"
+						query="SELECT Id,Name FROM Contact WHERE Name = '#[payload[&quot;fullname&quot;]]'"
 						doc:name="query Salesforce for Contact" />
 				</enricher>
 			</batch:step>
@@ -47,11 +60,11 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 				accept-expression="'syncAccount' == '${account.sync.policy}'">
 
 				<choice doc:name="Choice">
-					<when expression="#[payload['AccountName'] != null]">
+					<when expression="#[payload['accountName'] != null]">
 						<enricher source="#[payload]" target="#[recordVars['sfAccount']]"
 							doc:name="store result in 'sfAccount'">
 							<sfdc:query-single config-ref="Salesforce"
-								query="SELECT Id, Name FROM Account WHERE Name = '#[payload['AccountName']]'"
+								query="SELECT Id, Name FROM Account WHERE Name = '#[payload['accountName']]'"
 								doc:name="query Account in  Salesforce Instance " />
 						</enricher>
 
@@ -61,14 +74,11 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 									target="#[recordVars['idOfAccountInSalesforce']]" source="#[payload]">
 									<processor-chain doc:name="Processor Chain">
 
-
-
 										<sfdc:create-single config-ref="Salesforce"
 											type="Account" doc:name="create Account in Salesforce">
 											<sfdc:object>
-												<sfdc:object key="Name">#[payload['AccountName']]</sfdc:object>
+												<sfdc:object key="Name">#[payload['accountName']]</sfdc:object>
 											</sfdc:object>
-
 										</sfdc:create-single>
 
 										<expression-transformer expression="#[payload.getId()]"
@@ -77,7 +87,6 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 								</enricher>
 							</when>
 							<otherwise>
-
 								<enricher target="#[recordVars['idOfAccountInSalesforce']]"
 									doc:name="store result in idOfAccountInSalesforce" source="#[payload]">
 									<expression-transformer expression="#[recordVars['sfAccount']['Id']]"
@@ -86,7 +95,7 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 							</otherwise>
 						</choice>
 
-						<expression-component doc:name="set AccountId"><![CDATA[payload['AccountId'] = recordVars['idOfAccountInSalesforce'];
+						<expression-component doc:name="set AccountId"><![CDATA[payload['accountId'] = recordVars['idOfAccountInSalesforce'];
 	]]></expression-component>
 					</when>
 					<otherwise>
@@ -96,13 +105,10 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 				</choice>
 
 			</batch:step>
-			<batch:step name="setDummyAccountIdStep"
-				accept-expression="'assignDummyAccount' == '${account.sync.policy}'">
-				<expression-component doc:name="set dummy AccountId"><![CDATA[payload['AccountId']= '${account.id.in.b}';]]></expression-component>
-			</batch:step>
+
 			<batch:step name="doNotCreateAccountStep"
 				accept-expression="'doNotCreateAccount' == '${account.sync.policy}'">
-				<expression-component doc:name="remove AccountId"><![CDATA[payload.remove('AccountId');]]></expression-component>
+				<expression-component doc:name="remove AccountId"><![CDATA[payload.remove('accountId');]]></expression-component>
 			</batch:step>
 			<batch:step name="upsertContactInSalesforceStep">
 
@@ -117,9 +123,6 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 }
 
 ]]></expression-component>
-
-
-
 
 				<batch:commit size="100" doc:name="Batch Commit">
 					<sfdc:upsert config-ref="Salesforce"
