@@ -39,7 +39,7 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 &lt;/link-entity&gt;
 &lt;/entity&gt;
 &lt;/fetch&gt;"
-				doc:name="Microsoft Dynamics CRM" />
+				doc:name="Query MS Dynamics CRM for Contacts" />
 		</batch:input>
 		<batch:process-records>
 			<batch:step name="getAccountNameFromJoinResultStep">
