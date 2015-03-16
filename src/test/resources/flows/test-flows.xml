@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm"
+	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/mule/dynamicscrm/current/mule-dynamicscrm.xsd">
+	
+	<sub-flow name="createAccountInMsDynamicsFlow">
+		<dynamicscrm:create config-ref="MS_Dynamics_CRM"
+			logicalName="account" doc:name="Create Account">
+			<dynamicscrm:attributes>
+				<dynamicscrm:attribute key="name">#[payload['Name']]</dynamicscrm:attribute>
+			</dynamicscrm:attributes>
+		</dynamicscrm:create>
+		<logger message="Account in MS Dynamics created: #[payload]" level="INFO" doc:name="Logger" />
+	</sub-flow>
+	
+	<sub-flow name="createContactInMsDynamicsFlow">
+		<dynamicscrm:create config-ref="MS_Dynamics_CRM"
+			doc:name="Create Contact" logicalName="contact">
+			<dynamicscrm:attributes>
+				<dynamicscrm:attribute key="firstname">#[payload['FirstName']]</dynamicscrm:attribute>
+				<dynamicscrm:attribute key="emailaddress1">#[payload['Email']]</dynamicscrm:attribute>
+				<dynamicscrm:attribute key="lastname">#[payload['LastName']]</dynamicscrm:attribute>
+				<dynamicscrm:attribute key="telephone1">#[payload['Phone']]</dynamicscrm:attribute>
+				<dynamicscrm:attribute key="parentcustomerid_referenceto_account">#[payload['AccountId']]</dynamicscrm:attribute>
+			</dynamicscrm:attributes>
+		</dynamicscrm:create>
+		<logger message="Contact in MS Dynamics created: #[payload]" level="INFO" doc:name="Logger" />
+	</sub-flow>
+	
+	<sub-flow name="deleteAccountFromMsDynamicsFlow">
+		<dynamicscrm:delete config-ref="MS_Dynamics_CRM" logicalName="account" doc:name="Delete Account" />
+		<logger message="Account in MS Dynamics deleted: #[payload]" level="INFO" doc:name="Logger" />
+	</sub-flow>
+	
+	<sub-flow name="deleteContactFromMsDynamicsFlow">
+		<dynamicscrm:delete config-ref="MS_Dynamics_CRM" logicalName="contact" doc:name="Delete Contact" />
+		<logger message="Contact in MS Dynamics deleted: #[payload]" level="INFO" doc:name="Logger" />
+	</sub-flow>
+	
+	<sub-flow name="queryContactFromSalesforceFlow">
+		<sfdc:query-single config-ref="Salesforce"
+			query="SELECT Id, AccountId, Account.Name, FirstName, LastName, Name, Email, Phone FROM Contact WHERE FirstName = '#[payload[&quot;FirstName&quot;]]' and LastName = '#[payload[&quot;LastName&quot;]]'"
+			doc:name="Salesforce" />
+		<logger level="INFO" doc:name="Logger" message="Salesforce migrated contact: #[payload]" />
+	</sub-flow>
+	
+	<sub-flow name="deleteObjectFromSalesforceFlow">
+		<sfdc:delete config-ref="Salesforce" doc:name="Salesforce">
+			<sfdc:ids ref="#[payload]" />
+		</sfdc:delete>
+		<logger message="Deleted Salesforce object: #[payload]" level="INFO" doc:name="Logger" />
+	</sub-flow>
+
+</mule>
