@@ -52,7 +52,12 @@ target/
 # --------------- #
 .mule/
 
+# --------------- #
+# Mac-specific #
+# --------------- #
+**/.DS_Store
+
 # --------------------------------------- #
 # Test credentials to be use locally only #
 # --------------------------------------- #
-src/test/resources/mule.test.properties
+**/mule.test.properties

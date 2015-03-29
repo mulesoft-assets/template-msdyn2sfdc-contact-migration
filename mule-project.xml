@@ -3,4 +3,5 @@
     <name>template-msdyn2sfdc-contact-migration</name>
     <description>template-msdyn2sfdc-contact-migration</description>
     <muleExtension name="Salesforce" qualifier="org.mule.tooling.ui.contribution.sfdc.3.5.0"/>
+    <muleExtension name="Microsoft Dynamics CRM" qualifier="org.mule.tooling.ui.contribution.dynamicscrm.3.5.0"/>
 </mule-project>
