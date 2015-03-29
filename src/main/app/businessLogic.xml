@@ -42,78 +42,51 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 				doc:name="Query MS Dynamics CRM for Contacts" />
 		</batch:input>
 		<batch:process-records>
-			<batch:step name="getAccountNameFromJoinResultStep">
-				<expression-component doc:name="getAccountName"><![CDATA[// obtain account name from the complex structure returned by join query
-payload.put('accountName',payload.get('acc.name').value);
-// complex structure is not necessary any more
-payload.remove('acc.name');]]></expression-component>
-			</batch:step>
 			<batch:step name="getContactInSalesforceStep">
 				<enricher source="#[payload]" target="#[recordVars['contactInSalesforce']]"
 					doc:name="store result in 'contactInSalesforce'">
 					<sfdc:query-single config-ref="Salesforce"
 						query="SELECT Id,Name FROM Contact WHERE Name = '#[payload[&quot;fullname&quot;]]'"
-						doc:name="query Salesforce for Contact" />
+						doc:name="query Salesforce for matching Contact" />
 				</enricher>
 			</batch:step>
 			<batch:step name="findOrCreateAccountInSalesforceStep"
-				accept-expression="'syncAccount' == '${account.sync.policy}'">
+				>
 
-				<choice doc:name="Choice">
-					<when expression="#[payload['accountName'] != null]">
+				<choice doc:name="Has Account and syncAccount is enabled">
+					<when expression="#[(payload.get('acc.name').value != null) &amp;&amp; ('syncAccount' == '${account.sync.policy}')]">
 						<enricher source="#[payload]" target="#[recordVars['sfAccount']]"
 							doc:name="store result in 'sfAccount'">
 							<sfdc:query-single config-ref="Salesforce"
-								query="SELECT Id, Name FROM Account WHERE Name = '#[payload['accountName']]'"
-								doc:name="query Account in  Salesforce Instance " />
+								query="SELECT Id, Name FROM Account WHERE Name = '#[payload.get('acc.name').value]'"
+								doc:name="query Salesforce for matching Account" />
 						</enricher>
 
-						<choice doc:name="Choice">
+						<choice doc:name="No Matching Account found in Salesforce">
 							<when expression="#[recordVars['sfAccount'] is NullPayload]">
 								<enricher doc:name="store result in 'idOfAccountInSalesforce'"
-									target="#[recordVars['idOfAccountInSalesforce']]" source="#[payload]">
-									<processor-chain doc:name="Processor Chain">
-
+									target="#[recordVars['idOfAccountInSalesforce']]" source="#[payload.getId()]">
 										<sfdc:create-single config-ref="Salesforce"
 											type="Account" doc:name="create Account in Salesforce">
 											<sfdc:object>
-												<sfdc:object key="Name">#[payload['accountName']]</sfdc:object>
+												<sfdc:object key="Name">#[payload.get('acc.name').value]</sfdc:object>
 											</sfdc:object>
 										</sfdc:create-single>
-
-										<expression-transformer expression="#[payload.getId()]"
-											doc:name="get new account id" />
-									</processor-chain>
 								</enricher>
 							</when>
 							<otherwise>
-								<enricher target="#[recordVars['idOfAccountInSalesforce']]"
-									doc:name="store result in idOfAccountInSalesforce" source="#[payload]">
-									<expression-transformer expression="#[recordVars['sfAccount']['Id']]"
-										doc:name="get new account id" />
-								</enricher>
+                                <batch:set-record-variable variableName="idOfAccountInSalesforce" value="#[recordVars['sfAccount']['Id']]" doc:name="save found AccountId"/>
 							</otherwise>
 						</choice>
-
-						<expression-component doc:name="set AccountId"><![CDATA[payload['accountId'] = recordVars['idOfAccountInSalesforce'];
-	]]></expression-component>
+						<expression-component doc:name="set AccountId"><![CDATA[payload['accountId'] = recordVars['idOfAccountInSalesforce'];]]></expression-component>
 					</when>
 					<otherwise>
-						<logger level="INFO" doc:name="Logger"
-							message="There is no Account assigned to this contact. Doing nothing" />
+                        <expression-component doc:name="remove AccountId"><![CDATA[payload.remove('accountId');]]></expression-component>
 					</otherwise>
 				</choice>
 
 			</batch:step>
-
-			<batch:step name="doNotCreateAccountStep"
-				accept-expression="'doNotCreateAccount' == '${account.sync.policy}'">
-				<expression-component doc:name="remove AccountId"><![CDATA[payload.remove('accountId');]]></expression-component>
-			</batch:step>
 			<batch:step name="upsertContactInSalesforceStep">
-
-				<data-mapper:transform config-ref="Contact_To_Contact"
-					doc:name="Contact To Contact" />
 				<expression-component doc:name="prepare Contact for upsert"><![CDATA[if (recordVars['contactInSalesforce'] instanceof NullPayload) {
 	// Remove ID as it is an insert
 	payload.remove('Id');
@@ -125,11 +98,12 @@ payload.remove('acc.name');]]></expression-component>
 ]]></expression-component>
 
 				<batch:commit size="100" doc:name="Batch Commit">
+                    <data-mapper:transform config-ref="Contact_To_Contact" doc:name="Contact To Contact"/>
 					<sfdc:upsert config-ref="Salesforce"
 						externalIdFieldName="Id" type="Contact" doc:name="upsert Contact in Salesforce">
 						<sfdc:objects ref="#[payload]" />
 					</sfdc:upsert>
-					<logger message="2222 #[payload]" level="INFO" doc:name="log result" />
+                    <logger message="2222 #[payload]" level="INFO" doc:name="log result" />
 				</batch:commit>
 			</batch:step>
 		</batch:process-records>
