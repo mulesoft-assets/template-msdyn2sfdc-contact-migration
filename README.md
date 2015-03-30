@@ -214,12 +214,13 @@ In the visual editor they can be found on the *Global Element* tab.
 
 
 ## businessLogic.xml<a name="businesslogicxml"/>
-Functional aspect of the Template is implemented on this XML, directed by one flow that will check for Salesforce creations/updates. The several message processors constitute four high level actions that fully implement the logic of this Template:
+Functional aspect of the Template is implemented on this XML, directed by one flow that will check for Salesforce creations/updates. The several message processors constitute three high level actions that fully implement the logic of this Template:
 
 1. During the Input stage the Template will go to the MS Dynamics and query all existing Contacts that match the filter criteria.
-2. During the Process stage, each MS Dynamics Contact will be checked by name against Salesforce, if it has an existing matching objects in Salesforce.
-3. The choice routing element will then decide whether to perform update on selected Salesforce fields or peform insert
-Finally during the On Complete stage the Template will logoutput statistics data into the console.
+2. During the Process stage, each MS Dynamics Contact will be matched by name against Salesforce, in order to decide whether to create or update the contact.
+3. The following Batch step will match the Accounts for each contact in the destination system if the syncAccount policy is set. The final batch step will upsert the contacts in Salesforce by gathering them in batches.
+
+Finally during the On Complete stage the Template will log output statistics data into the console.
 
 
 
