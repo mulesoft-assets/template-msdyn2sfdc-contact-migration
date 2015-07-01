@@ -44,7 +44,7 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 	private static final String PHONE = "Phone";
 	private static final String ACCOUNT_ID = "AccountId";
 
-	private static final int TIMEOUT_MILLIS = 60;
+	private static final int TIMEOUT_MILLIS = 300;
 	private BatchTestHelper batchTestHelper;
 	private String anypointTemplateName = "";
 
