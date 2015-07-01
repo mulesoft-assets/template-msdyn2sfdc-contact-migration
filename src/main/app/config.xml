@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule version="EE-3.7.0"
-	xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm"
-	xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" 
-	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
-	xmlns:context="http://www.springframework.org/schema/context" 
-	xmlns="http://www.mulesoft.org/schema/mule/core"
+<mule xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm"
+	xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -30,8 +27,11 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 
 	<smtp:gmail-connector name="gmailConnector"
 		doc:name="Gmail" validateConnections="true"
-		doc:description="This is the connector used to send email notifications. You should change its configuration to select a different email provider" contentType="text/html"/>
-    <dynamicscrm:config name="Microsoft_Dynamics_CRM__Legacy_Connection" username="${crm.username}" password="${crm.password}" organizationServiceUrl="${crm.service-url}" authenticationType="CRMONLINE" doc:name="Microsoft Dynamics CRM: Legacy Connection"/>
+		doc:description="This is the connector used to send email notifications. You should change its configuration to select a different email provider" />
 
+	<dynamicscrm:config authenticationType="CRMONLINE"
+		doc:name="Microsoft Dynamics CRM: Legacy Connection" name="MS_Dynamics_CRM"
+		organizationServiceUrl="${crm.service-url}" password="${crm.password}"
+		username="${crm.username}" />
 
 </mule>

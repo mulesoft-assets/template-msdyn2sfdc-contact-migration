@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule version="EE-3.7.0"
-	xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm"
-	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" 
-	xmlns="http://www.mulesoft.org/schema/mule/core"
+<mule xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm"
+	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -13,7 +11,7 @@ http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfd
 http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/mule/dynamicscrm/current/mule-dynamicscrm.xsd">
 	
 	<sub-flow name="createAccountInMsDynamicsFlow">
-		<dynamicscrm:create config-ref="Microsoft_Dynamics_CRM__Legacy_Connection"
+		<dynamicscrm:create config-ref="MS_Dynamics_CRM"
 			logicalName="account" doc:name="Create Account">
 			<dynamicscrm:attributes>
 				<dynamicscrm:attribute key="name">#[payload['Name']]</dynamicscrm:attribute>
@@ -23,7 +21,7 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 	</sub-flow>
 	
 	<sub-flow name="createContactInMsDynamicsFlow">
-		<dynamicscrm:create config-ref="Microsoft_Dynamics_CRM__Legacy_Connection"
+		<dynamicscrm:create config-ref="MS_Dynamics_CRM"
 			doc:name="Create Contact" logicalName="contact">
 			<dynamicscrm:attributes>
 				<dynamicscrm:attribute key="firstname">#[payload['FirstName']]</dynamicscrm:attribute>
@@ -37,12 +35,12 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 	</sub-flow>
 	
 	<sub-flow name="deleteAccountFromMsDynamicsFlow">
-		<dynamicscrm:delete config-ref="Microsoft_Dynamics_CRM__Legacy_Connection" logicalName="account" doc:name="Delete Account" />
+		<dynamicscrm:delete config-ref="MS_Dynamics_CRM" logicalName="account" doc:name="Delete Account" />
 		<logger message="Account in MS Dynamics deleted: #[payload]" level="INFO" doc:name="Logger" />
 	</sub-flow>
 	
 	<sub-flow name="deleteContactFromMsDynamicsFlow">
-		<dynamicscrm:delete config-ref="Microsoft_Dynamics_CRM__Legacy_Connection" logicalName="contact" doc:name="Delete Contact" />
+		<dynamicscrm:delete config-ref="MS_Dynamics_CRM" logicalName="contact" doc:name="Delete Contact" />
 		<logger message="Contact in MS Dynamics deleted: #[payload]" level="INFO" doc:name="Logger" />
 	</sub-flow>
 	
