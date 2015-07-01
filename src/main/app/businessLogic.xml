@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf" version="EE-3.7.0" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+<mule version="EE-3.7.0"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
 	xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm"
 	xmlns:core="http://www.mulesoft.org/schema/mule/core" 
 	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
@@ -20,8 +21,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd
 http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/mule/dynamicscrm/current/mule-dynamicscrm.xsd
-http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd">
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
 
 	<batch:job name="syncContactBatch">
 		<batch:threading-profile poolExhaustedAction="WAIT" />
@@ -110,7 +110,7 @@ payload map {
 						externalIdFieldName="Id" type="Contact" doc:name="upsert Contact in Salesforce">
 						<sfdc:objects ref="#[payload]" />
 					</sfdc:upsert>
-					<logger message="2222 #[payload]" level="INFO" doc:name="log result" />
+					<logger message="upsert result: #[payload]" level="INFO" doc:name="log result" />
 				</batch:commit>
 			</batch:step>
 		</batch:process-records>
