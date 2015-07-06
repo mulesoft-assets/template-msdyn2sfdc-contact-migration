@@ -91,6 +91,12 @@
 			<name>Mule EE Dependencies</name>
 			<url>http://repository-master.mulesoft.org/nexus/content/repositories/mule-ee-dependencies/</url>
 		</repository>
+		<repository>
+			<id>mule-ee-thirdparty</id>
+			<name>MuleSoft Thirdparty Repository</name>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/thirdparty/</url>
+			<layout>default</layout>
+		</repository>		
 	</repositories>
 	<scm>
 		<connection>scm:git:https://github.com/mulesoft/template-msdyn2sfdc-contact-migration.git</connection>
