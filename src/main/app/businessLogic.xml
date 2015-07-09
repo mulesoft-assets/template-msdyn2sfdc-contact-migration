@@ -58,7 +58,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
                 <logger message="payload= #[payload], sfAccount=#[recordVars.sfAccount]" level="INFO" doc:name="log sfAccount"/>
                 <choice doc:name="No Matching Account found in Salesforce">
                     <when expression="#[recordVars['sfAccount'] == null]">
-                        <enricher source="#[payload.getId()]" target="#[recordVars.idOfAccountInSalesforce]" doc:name="store result in 'idOfAccountInSalesforce'">
+                        <enricher source="#[payload.getId()]" target="#[payload.accountId]" doc:name="enrich payload with new accountId">
                             <sfdc:create-single config-ref="Salesforce" type="Account" doc:name="create Account in Salesforce">
                                 <sfdc:object>
                                     <sfdc:object key="Name">#[payload.get('acc.name').value]</sfdc:object>
@@ -67,10 +67,13 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
                         </enricher>
                     </when>
                     <otherwise>
-                        <batch:set-record-variable variableName="idOfAccountInSalesforce" value="#[recordVars.sfAccount.Id]" doc:name="save existing AccountId"/>
+                        <enricher source="#[recordVars.sfAccount.Id]" target="#[payload.accountId]" doc:name="enrich payload with existing accountId">
+                            <set-payload value="#[recordVars.sfAccount.Id]" doc:name="Set Payload"/>
+                        </enricher>
+
                     </otherwise>
                 </choice>
-                <expression-component doc:name="set AccountId"><![CDATA[payload.accountId = recordVars.idOfAccountInSalesforce;]]></expression-component>
+
 
 
 			</batch:step>
