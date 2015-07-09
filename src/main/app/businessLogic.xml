@@ -67,7 +67,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
                         </enricher>
                     </when>
                     <otherwise>
-                        <enricher source="#[recordVars.sfAccount.Id]" target="#[payload.accountId]" doc:name="enrich payload with existing accountId">
+                        <enricher target="#[payload.accountId]" doc:name="enrich payload with existing accountId">
                             <set-payload value="#[recordVars.sfAccount.Id]" doc:name="Set Payload"/>
                         </enricher>
 
