@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule version="EE-3.7.0"
+<mule version="EE-3.7.1"
 	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
 	xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm"
 	xmlns:core="http://www.mulesoft.org/schema/mule/core" 
@@ -68,7 +68,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
                     </when>
                     <otherwise>
                         <enricher target="#[payload.accountId]" doc:name="enrich payload with existing accountId">
-                            <set-payload value="#[recordVars.sfAccount.Id]" doc:name="Set Payload"/>
+                            <set-payload value="#[recordVars.sfAccount.Id]" doc:name="load existing account ID"/>
                         </enricher>
 
                     </otherwise>
@@ -83,15 +83,14 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 				<batch:commit size="100" doc:name="Batch Commit">
 					<dw:transform-message doc:name="CRM Map to SFDC Map">
 						<dw:set-payload><![CDATA[%dw 1.0
-%input payload application/java
 %output application/java
 ---
 payload map {
-	(AccountId: $.accountId) when $.accountId?,
-	Email: 		$.emailaddress1,
 	(Id: 		$.Id) when $.Id != null,
+	(AccountId: $.accountId) when $.accountId?,
 	FirstName: 	$.firstname,
 	LastName: 	$.lastname,
+	Email: 		$.emailaddress1,
 	Phone: 		$.telephone1
 }]]></dw:set-payload>
 					</dw:transform-message>
