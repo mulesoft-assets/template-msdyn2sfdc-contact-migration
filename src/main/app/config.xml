@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule version="EE-3.7.0"
+<mule version="EE-3.7.1"
 	xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm"
 	xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" 
 	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
@@ -30,7 +30,7 @@ http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/m
 	<smtp:gmail-connector name="gmailConnector"
 		doc:name="Gmail" validateConnections="true"
 		doc:description="This is the connector used to send email notifications. You should change its configuration to select a different email provider" contentType="text/html"/>
-    <dynamicscrm:config name="MS_Dynamics_CRM" username="${crm.username}" password="${crm.password}" organizationServiceUrl="${crm.service-url}" authenticationType="CRMONLINE" doc:name="Microsoft Dynamics CRM: Legacy Connection"/>
+    <dynamicscrm:config name="MS_Dynamics_CRM" username="${crm.username}" password="${crm.password}" organizationServiceUrl="${crm.service-url}" authenticationType="CRMONLINE" doc:name="Microsoft Dynamics CRM: Legacy Connection" disableCnCheck="true"/>
 
 
 </mule>

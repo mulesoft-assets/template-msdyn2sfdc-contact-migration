@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>org.mule.templates</groupId>
 		<artifactId>templates-tooling-parent-pom</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.2.2</version>
 	</parent>
 
 	<artifactId>template-msdyn2sfdc-contact-migration</artifactId>
@@ -34,8 +33,8 @@
 					</inclusions>
 				</configuration>
 			</plugin>
-		</plugins>
-	</build>
+        </plugins>
+    </build>
 
 	<dependencies>
 		<dependency>
@@ -66,15 +65,15 @@
 			<version>${mule.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+            <groupId>com.mulesoft.weave</groupId>
+            <artifactId>mule-plugin-weave_2.11</artifactId>
+            <version>${mule.version}</version>
+            <scope>provided</scope>
+        </dependency>
 	</dependencies>
 
 	<repositories>
-		<repository>
-			<id>mule-ee-thirdparty</id>
-			<name>MuleSoft Thirdparty Repository</name>
-			<url>https://repository.mulesoft.org/nexus/content/repositories/thirdparty/</url>
-			<layout>default</layout>
-		</repository>
 		<repository>
 			<id>mulesoft-releases</id>
 			<name>MuleSoft Releases Repository</name>
@@ -82,15 +81,16 @@
 			<layout>default</layout>
 		</repository>
 		<repository>
+			<id>mule-ee-releases</id>
+			<name>MuleSoft Releases EE Repository</name>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/releases-ee/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
 			<id>mulesoft-snapshots</id>
 			<name>MuleSoft Snapshots Repository</name>
 			<url>https://repository.mulesoft.org/nexus/content/repositories/snapshots/</url>
 			<layout>default</layout>
-		</repository>
-		<repository>
-			<id>mule-ee-dependencies</id>
-			<name>Mule EE Dependencies</name>
-			<url>http://repository-master.mulesoft.org/nexus/content/repositories/mule-ee-dependencies/</url>
 		</repository>
 	</repositories>
 	<scm>
