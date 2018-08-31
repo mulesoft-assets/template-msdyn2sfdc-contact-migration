@@ -14,10 +14,6 @@
     <version>2.1.0-SNAPSHOT</version>
     <name>template-msdyn2sfdc-contact-migration</name>
 
-    <properties>
-        <ms-dynamics.connector.version>3.0.0</ms-dynamics.connector.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.mule.connectors</groupId>

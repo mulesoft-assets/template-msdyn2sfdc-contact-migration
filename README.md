@@ -28,7 +28,7 @@ Please review the terms of the license before downloading and using this templat
 # Use Case <a name="usecase"/>
 As a Salesforce admin I want to synchronize Contacts between MS Dynamics CRM and Salesforce in a one-time manner.
 
-This Template should serve as a foundation for setting an online migration of Contacts from MS Dynamics CRM to a Salesforce instance. Everytime the HTTP endpoint is triggered, the integration will migrate all contacts from the MS Dynamics CRM instance in manner of one time integration and it will be responsible for updating or inserting the Contacts on the target Salesforce instance.
+This Template should serve as a foundation for setting an online migration of Contacts from MS Dynamics CRM to a Salesforce instance. Everytime the HTTP endpoint is triggered, the integration will migrate all contacts from the MS Dynamics CRM instance in manner of one-time integration and it will be responsible for updating or inserting the Contacts on the target Salesforce instance.
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
@@ -211,7 +211,7 @@ In the visual editor they can be found on the *Global Element* tab.
 
 
 ## businessLogic.xml<a name="businesslogicxml"/>
-Functional aspect of the Template is implemented on this XML, directed by one flow that will check for Salesforce creations/updates. The several message processors constitute three high level actions that fully implement the logic of this Template:
+Functional aspect of the Template is implemented on this XML, directed by one flow that will check for Salesforce creations/updates. The several message processors constitute three high-level actions that fully implement the logic of this Template:
 
 1. The Template goes to the MS Dynamics and query all existing Contacts that match the filter criteria.
 2. During the *Process* stage, each MS Dynamics Contact will be matched by name against Salesforce, in order to decide whether to create or update the contact.
