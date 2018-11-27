@@ -11,17 +11,17 @@ This template is subject to the conditions of the <a href="https://s3.amazonaws.
 <!-- Use Case (start) -->
 As a Salesforce admin I want to synchronize Contacts between MS Dynamics CRM and Salesforce in a one-time manner.
 
-This Template should serve as a foundation for setting an online migration of Contacts from MS Dynamics CRM to a Salesforce instance. Everytime the HTTP endpoint is triggered, the integration will migrate all contacts from the MS Dynamics CRM instance in manner of one-time integration and it will be responsible for updating or inserting the Contacts on the target Salesforce instance.
+This template serves as a foundation for setting an online migration of Contacts from MS Dynamics CRM to a Salesforce instance. Everytime the HTTP endpoint is triggered, the integration will migrate all contacts from the MS Dynamics CRM instance in manner of one-time integration and it will be responsible for updating or inserting the Contacts on the target Salesforce instance.
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
-As implemented, this Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
+As implemented, this Template leverages the Mule batch module.
 The batch job is divided in *Process* and *On Complete* stages.
 
 The integration is triggered by a HTTP endpoint defined in the flow that is going to trigger the application, querying the MS Dynamics contacts matching a filter criteria and executing the batch job.
-During the *Process* stage, each MS Dynamics Contact will be filtered depending on if it has an existing matching Contact in the Salesforce instance.
-The last step of the *Process* stage will group the Contacts and insert/update them in Salesforce.
-Finally during the *On Complete* stage, the Template will log output statistics data into the console and send an email with the results.
+During the *Process* stage, each MS Dynamics Contact is filtered depending on if it has an existing matching Contact in the Salesforce instance.
+The last step of the *Process* stage groups the Contacts and inserts or updates them in Salesforce.
+Finally during the *On Complete* stage, the Template logs output statistics data into the console and send an email with the results.
 <!-- Use Case (end) -->
 
 # Considerations
@@ -30,10 +30,10 @@ Finally during the *On Complete* stage, the Template will log output statistics 
 <!-- Default Considerations (end) -->
 
 <!-- Considerations (start) -->
-To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source (MS Dynamics) and destination (Salesforce) systems, that must be made in order for all to run smoothly. 
+To make this template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source (MS Dynamics) and destination (Salesforce) systems, that must be made for the template to run smoothly. 
 **Failing to do so could lead to unexpected behavior of the template.**
 
-This particular Anypoint Template illustrate the migration use case between MS Dynamics and Salesforce, thus it requires both instances to work.
+This template illustrates the migration use case between MS Dynamics and Salesforce, thus it requires both instances to work.
 <!-- Considerations (end) -->
 
 
@@ -130,27 +130,27 @@ To use this template, configure properties such as credentials, configurations, 
 + page.size `200`
 + http.port `8081`
 
-**Salesforce Connector configuration**
+**Salesforce Connector Configuration**
 
 + sfdc.username `joan.baez@orgb`
 + sfdc.password `JoanBaez456`
 + sfdc.securityToken `ces56arl7apQs56XTddf34X`
 
-**MS Dynamics Connector configuration**
+**MS Dynamics Connector Configuration**
 
 + msdyn.retries `3`
 + msdyn.username `username@company_name.onmicrosoft.com`
 + msdyn.password `password`
 + msdyn.url `https://company_name.api.crm4.dynamics.com/XRMServices/2011/Organization.svc`
 
-**SMTP Services configuration**
+**SMTP Services Configuration**
 
 + smtp.host `smtp.gmail.com`
 + smtp.port `587`
 + smtp.user `johndoe%40gmail.com`
 + smtp.password `password`
 
-**E-mail Details**
+**Email Details**
 
 + mail.from `batch.migratecontacts.migration%40mulesoft.com`
 + mail.to `user@example.com`
@@ -207,7 +207,7 @@ Functional aspect of the Template is implemented on this XML, directed by one fl
 2. During the *Process* stage, each MS Dynamics Contact will be matched by name against Salesforce, in order to decide whether to create or update the contact.
 3. The following Batch step will match the Accounts for each contact in the destination system if the syncAccount policy is set. The final batch step will upsert the contacts in Salesforce by gathering them in batches.
 
-Finally during the *On Complete stage* the Template will log output statistics data into the console.<!-- Default Business Logic XML (end) -->
+Finally during the *On Complete stage* the Template logs output statistics data into the console.<!-- Default Business Logic XML (end) -->
 
 <!-- Business Logic XML (start) -->
 
