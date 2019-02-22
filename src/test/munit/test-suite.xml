@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:microsoft-dynamics-crm="http://www.mulesoft.org/schema/mule/microsoft-dynamics-crm"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/microsoft-dynamics-crm http://www.mulesoft.org/schema/mule/microsoft-dynamics-crm/current/mule-microsoft-dynamics-crm.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+	<munit:config name="test-suite.xml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="f288def6-06e2-441b-bcf3-75cfdee72c80" file="mule.test.properties" />
+	<munit:before-test name="test-suiteBefore_Test" description="Before tests actions" doc:id="20244817-d1aa-4c7b-92f9-9c99552bd042" >
+		<ee:transform doc:name="Prepare test data of account" doc:id="9d495cbb-6a70-4996-b61c-6708104c9db0">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="testAccount"><![CDATA[%dw 2.0
+output application/java
+var generateId = randomInt(100000)
+---
+{
+	name : "MUnitTestAccountName" ++ " " ++ generateId,
+	description : "MUnitTestAccountDesription" ++ " " ++ generateId
+}]]></ee:set-variable>
+				<ee:set-variable variableName="testAccount2" ><![CDATA[%dw 2.0
+output application/java
+var generateId = randomInt(100000)
+---
+{
+	name : "MUnitTestAccountName" ++ " " ++ generateId,
+	description : "MUnitTestAccountDesription" ++ " " ++ generateId
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<microsoft-dynamics-crm:create-multiple logicalName="account" doc:name="Create test Account in MS Dynamics" doc:id="2d75024e-091f-4a02-a8c4-973f4bf92ee7" config-ref="Microsoft_Dynamics_CRM_Dynamics_CRM">
+			<microsoft-dynamics-crm:list-of-attributes><![CDATA[#[[vars.testAccount, vars.testAccount2]]]]></microsoft-dynamics-crm:list-of-attributes>
+		</microsoft-dynamics-crm:create-multiple>
+		<set-variable value="#[payload.items map ($.id)]" doc:name="Save account id to variable msdynAccountId" doc:id="78a2b664-d54f-43b4-9ce3-eb2c3d475786" variableName="msdynAccountIds" />
+		<ee:transform doc:name="Prepare test data of contact" doc:id="0c69056c-0cf6-45f3-985f-b49365894f56">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="testContact"><![CDATA[%dw 2.0
+output application/java
+var generateId = randomInt(100000)
+---
+{
+	firstname : "MUnitTestFirstName" ++ " " ++ generateId,
+	lastname : "MUnitTestLastName" ++ " " ++ generateId,
+	emailaddress1 : p('test.msdyn.email'),
+	parentcustomerid_referenceto_account : vars.msdynAccountIds[0]
+}]]></ee:set-variable>
+				<ee:set-variable variableName="testContact2" ><![CDATA[%dw 2.0
+output application/java
+var generateId = randomInt(100000)
+---
+{
+	firstname : "MUnitTestFirstName" ++ " " ++ generateId,
+	lastname : "MUnitTestLastName" ++ " " ++ generateId,
+	emailaddress1 : p('test.msdyn.email2'),
+	parentcustomerid_referenceto_account : vars.msdynAccountIds[1]
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<microsoft-dynamics-crm:create-multiple logicalName="contact" doc:name="Create test Contact in MS Dynamics" doc:id="7fb207ae-a2fe-4696-8037-0fc76d009802" config-ref="Microsoft_Dynamics_CRM_Dynamics_CRM">
+			<microsoft-dynamics-crm:list-of-attributes><![CDATA[#[[vars.testContact, vars.testContact2]]]]></microsoft-dynamics-crm:list-of-attributes>
+		</microsoft-dynamics-crm:create-multiple>
+		<salesforce:create type="Account" doc:name="Create test account in Salesforce" doc:id="f2566754-e832-4cac-8203-3172da39b9f6" config-ref="Salesforce_Config">
+			<salesforce:records ><![CDATA[#[[vars.testAccount2]]]]></salesforce:records>
+		</salesforce:create>
+		<munit-tools:mock-when doc:name="Mock email processor to avoid sending email" doc:id="810e87f3-a56c-43e9-8189-b3db62470ec8" processor="email:send" >
+			<munit-tools:then-return />
+		</munit-tools:mock-when>
+	</munit:before-test>
+	<munit:test name="test-suiteTest" description="MUnit Test" doc:id="3a7489f2-86c3-46b3-82b9-30d780176a4f" >
+		<munit:execution >
+			<flow-ref doc:name="Reference to queryFromMSDynSubFlow" doc:id="3bbd458d-1997-42c3-a97f-e2e63db9d8c0" name="queryFromMSDynSubFlow"/>
+			<ee:transform doc:name="Filtering test records" doc:id="69508202-0ce4-4a1f-8e48-c310cf6d5b7c">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload filter ($.emailaddress1 == p('test.msdyn.email') or $.emailaddress1 == p('test.msdyn.email2'))]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="Reference to businessLogicFlow" doc:id="d39f2bb2-e848-420d-bf01-7b2ce62ae1ed" name="businessLogicFlow"/>
+			<scripting:execute engine="groovy" doc:name="Sleep for 30s until the processing is completed" doc:id="b1c55b7a-62cd-4a0c-a1f7-8977032db809">
+				<scripting:code>sleep(30000)</scripting:code>
+			</scripting:execute>
+			<flow-ref doc:name="Reference to checkNewContactWithNewAccountSFDC" doc:id="15bc5b61-f24e-4fc0-95cf-1cbef9942c63" name="checkNewContactWithNewAccountSFDC"/>
+			<flow-ref doc:name="Reference to checkNewContactWithExistAccountSFDC" doc:id="ff78f849-51f1-4741-8ee4-4e4f88dc8571" name="checkNewContactWithExistAccountSFDC"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that if name of new acc in sfdc eq name of test acc" doc:id="7908b4c4-9aba-473e-a0d1-57f8fb1aef68" expression="#[vars.testAccountFromSfdc.Name]" is="#[MunitTools::equalTo(vars.testAccount.name)]" message="Name of new sfdc account doesnt eq name of test account"/>
+			<munit-tools:assert-that doc:name="Assert that if name of new contact in sfdc eq name of test contact" doc:id="65a364c8-84af-4152-b22b-8f7f175ae2cb" expression="#[vars.testContactFromSfdc.Name]" is='#[MunitTools::equalTo(vars.testContact.firstname ++ " " ++ vars.testContact.lastname)]' message="Name of new sfdc contact doesnt eq name of test contact"/>
+			<munit-tools:assert-that doc:name="Assert that if name of old acc in sfdc eq name of test acc" doc:id="1c9b485c-6dae-47f0-b844-e1982b3ff914" expression="#[vars.testAccount2FromSfdc.Name]" is="#[MunitTools::equalTo(vars.testAccount2.name)]" message="Name of old sfdc account doesnt eq name of test account"/>
+			<munit-tools:assert-that doc:name="Assert that if name of new contact 2 in sfdc eq name of test contact 2" doc:id="f17370d3-7cc8-4e24-9400-5bb3386cfc36" expression="#[vars.testContact2FromSfdc.Name]" is='#[MunitTools::equalTo(vars.testContact2.firstname ++ " " ++ vars.testContact2.lastname)]' message="Name of new sfdc contact 2 doesnt eq name of test contact 2"/>
+		</munit:validation>
+	</munit:test>
+	<sub-flow name="checkNewContactWithNewAccountSFDC" doc:id="d05a3139-7e5a-499b-94bc-e9320363127c" >
+		<salesforce:query-single doc:name="Query info about new account" doc:id="7bcd994f-3fe3-4e38-b3c5-894e7f8c6855" config-ref="Salesforce_Config" target="testAccountFromSfdc">
+			<salesforce:salesforce-query >SELECT Id, Name FROM Account WHERE Name = ':accountName'</salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	"accountName" : vars.testAccount.name
+}]]]></salesforce:parameters>
+		</salesforce:query-single>
+		<salesforce:query-single doc:name="Query info about new contact" doc:id="08f67aa0-8cc5-454a-b566-23dba0e32276" config-ref="Salesforce_Config" target="testContactFromSfdc">
+			<salesforce:salesforce-query >SELECT Id,Name FROM Contact WHERE Email = ':email'</salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	"email" : vars.testContact.emailaddress1
+}]]]></salesforce:parameters>
+		</salesforce:query-single>
+	</sub-flow>
+	<sub-flow name="checkNewContactWithExistAccountSFDC" doc:id="0d4f5ff6-01cd-4a91-b94b-334e16442f3a" >
+		<salesforce:query-single doc:name="Query info about exist account" doc:id="bc21c3fa-4763-499f-a766-dac4cc007ff3" config-ref="Salesforce_Config" target="testAccount2FromSfdc" >
+			<salesforce:salesforce-query >SELECT Id, Name FROM Account WHERE Name = ':accountName'</salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	"accountName" : vars.testAccount2.name
+}]]]></salesforce:parameters>
+		</salesforce:query-single>
+		<salesforce:query-single doc:name="Query info about new contact 2" doc:id="7624a699-1f38-42eb-a7ad-daf136581ab9" config-ref="Salesforce_Config" target="testContact2FromSfdc" >
+			<salesforce:salesforce-query >SELECT Id,Name FROM Contact WHERE Email = ':email'</salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	"email" : vars.testContact2.emailaddress1
+}]]]></salesforce:parameters>
+		</salesforce:query-single>
+	</sub-flow>
+	<munit:after-test name="test-suiteAfter_Test" description="After tests actions" doc:id="97c624db-25da-4a92-878a-1025a3926c64">
+		<microsoft-dynamics-crm:delete-multiple logicalName="account" doc:name="Delete test acconts" doc:id="aa2f259f-bfbf-46d7-bd1c-603934e7dae5" config-ref="Microsoft_Dynamics_CRM_Dynamics_CRM" ids="#[vars.msdynAccountIds]" />
+		<salesforce:delete doc:name="Delete test accounts" doc:id="4937761b-1caa-4f12-8f61-b4f04f822256" config-ref="Salesforce_Config">
+			<salesforce:delete-ids><![CDATA[#[[vars.testAccountFromSfdc.Id, vars.testAccount2FromSfdc.Id]]]]></salesforce:delete-ids>
+		</salesforce:delete>
+	</munit:after-test>
+	
+
+</mule>

@@ -14,22 +14,6 @@ http://www.mulesoft.org/schema/mule/microsoft-dynamics-crm http://www.mulesoft.o
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
 
 <flow name="businessLogicFlow" doc:id="884f86c5-66e1-4701-bb9b-594c2a60abf3" >
-    <microsoft-dynamics-crm:retrieve-multiple-by-query doc:name="Query MS Dynamics CRM for Contacts" doc:id="38490d35-8fc1-4b27-aefd-8dd9b410d88c" config-ref="Microsoft_Dynamics_CRM_Dynamics_CRM">
-			<microsoft-dynamics-crm:query ><![CDATA[<fetch mapping="logical">
-<entity name="contact">
-<attribute name="contactid" />
-<attribute name="emailaddress1" />
-<attribute name="firstname" />
-<attribute name="fullname" />
-<attribute name="lastname" />
-<attribute name="parentcustomerid" />
-<attribute name="telephone1" />
-<link-entity name="account" from="accountid" to="parentcustomerid" alias="acc" link-type="inner">
-       <attribute name="name"/>
-</link-entity>
-</entity>
-</fetch>]]></microsoft-dynamics-crm:query>
-		</microsoft-dynamics-crm:retrieve-multiple-by-query>
 		<batch:job jobName="migrateContactsBatch" doc:id="79b373e6-1aeb-43a9-9dfe-8ac0d2f31fdc" >
         <batch:process-records >
             <batch:step name="getContactsFromSalesforce" doc:id="232087de-e311-49c1-a890-439c65ea1af2" >
@@ -64,8 +48,22 @@ payload ++ {
 }]]]></salesforce:parameters>
 							</salesforce:query-single>
 							<choice doc:name="No Matching Account found in Salesforce" doc:id="9a68de5c-4813-4baa-9076-00c6ddd337d8" >
-								<when expression="#[vars.sfAccount == null]" >
-									<salesforce:create-single type="Account" doc:name="Create Account in Salesforce" doc:id="c6682ee6-1aa7-4b20-bdd7-db6449aa0b74" config-ref="Salesforce_Config" target="accountId" targetValue="#[payload.getId()]"/>
+								<when expression="#[isEmpty(vars.sfAccount)]" >
+									<ee:transform doc:name="Store name of new account" doc:id="449ac857-4ea6-42fe-9347-0b4818ebec9e">
+										<ee:message>
+										</ee:message>
+										<ee:variables >
+											<ee:set-variable variableName="nameOfNewAccountForSfdc" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	name : payload["acc.name"].value
+}]]></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+									<salesforce:create-single type="Account" doc:name="Create Account in Salesforce" doc:id="c6682ee6-1aa7-4b20-bdd7-db6449aa0b74" config-ref="Salesforce_Config" target="accountId" targetValue="#[payload.id]">
+										<salesforce:record ><![CDATA[#[vars.nameOfNewAccountForSfdc]]]></salesforce:record>
+									</salesforce:create-single>
 								</when>
 								<otherwise >
 									<set-variable value="#[vars.sfAccount.Id]" doc:name="Save found AccountId" doc:id="86df8fda-e779-4fd9-89e5-76c3a44cc04a" variableName="accountId"/>
@@ -152,9 +150,28 @@ output application/java
         </batch:on-complete>
     </batch:job>
 </flow>
-<flow name="mainFlow" doc:id="7c0a5bef-b3d5-442f-bff3-10d038f69a5e" >
-    <flow-ref doc:name="businessLogicFlow" doc:id="91360ede-4d71-44c7-9b64-8ee762e04ea0" name="businessLogicFlow"/>
-    <error-handler >
+	<sub-flow name="queryFromMSDynSubFlow" doc:id="d89f9117-4191-44d2-b824-0b65f21d8439" >
+		<microsoft-dynamics-crm:retrieve-multiple-by-query doc:name="Query MS Dynamics CRM for Contacts" doc:id="38490d35-8fc1-4b27-aefd-8dd9b410d88c" config-ref="Microsoft_Dynamics_CRM_Dynamics_CRM">
+			<microsoft-dynamics-crm:query><![CDATA[<fetch mapping="logical">
+<entity name="contact">
+<attribute name="contactid" />
+<attribute name="emailaddress1" />
+<attribute name="firstname" />
+<attribute name="fullname" />
+<attribute name="lastname" />
+<attribute name="parentcustomerid" />
+<attribute name="telephone1" />
+<link-entity name="account" from="accountid" to="parentcustomerid" alias="acc" link-type="inner">
+       <attribute name="name"/>
+</link-entity>
+</entity>
+</fetch>]]></microsoft-dynamics-crm:query>
+		</microsoft-dynamics-crm:retrieve-multiple-by-query>
+	</sub-flow>
+	<flow name="mainFlow" doc:id="7c0a5bef-b3d5-442f-bff3-10d038f69a5e">
+    <flow-ref doc:name="Reference to queryFromMSDynSubFlow" doc:id="fddfd3ef-569d-4ec1-8b48-5d82547730bb" name="queryFromMSDynSubFlow"/>
+		<flow-ref doc:name="businessLogicFlow" doc:id="91360ede-4d71-44c7-9b64-8ee762e04ea0" name="businessLogicFlow" />
+    <error-handler>
         <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="488b507d-e26c-4c56-8759-8bb4f6645d71" type="ANY">
             <flow-ref doc:name="errorHandlingFlow" doc:id="afdaf73c-0137-4d60-84f6-5c41234771a3" name="errorHandlingFlow" />
         </on-error-propagate>
